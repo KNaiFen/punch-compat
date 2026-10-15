@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8.5",
+  "package": "dev.punchcompat.mixin",
+  "plugin": "dev.punchcompat.CompatMixinPlugin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "RealCameraMixin",
+    "CreateHandMixin",
+    "CreateGripRendererMixin",
+    "PunchyCreateMixin"
+  ],
+  "injectors": {"defaultRequire": 1}
+}

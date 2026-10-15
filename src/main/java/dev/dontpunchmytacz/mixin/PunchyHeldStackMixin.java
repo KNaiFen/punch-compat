@@ -15,24 +15,21 @@ public class PunchyHeldStackMixin {
 
     private static boolean dontpunchmytacz$reported = false;
 
-    @Inject(method = "resolveRenderStack(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/HumanoidArm;Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/item/ItemStack;", at = @At("RETURN"), cancellable = true, require = 0, remap = false)
+    @Inject(method = "resolveRenderStack(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/HumanoidArm;Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/item/ItemStack;", at = @At("RETURN"), cancellable = true, require = 1, remap = false)
     private static void dontpunchmytacz$keepLiveHeldStack(Player player, HumanoidArm arm, ItemStack stack, CallbackInfoReturnable<ItemStack> cir) {
-        try {
-            ItemStack rendered = cir.getReturnValue();
-            if (player == null || arm == null || rendered == null || rendered.isEmpty()) {
-                return;
-            }
-            ItemStack live = player.getItemInHand(arm == player.getMainArm() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
-            if (live == rendered || live.isEmpty() || !ItemStack.isSameItem(live, rendered) || live.getCount() != rendered.getCount()) {
-                return;
-            }
-            cir.setReturnValue(live);
-            cir.cancel();
-            if (!dontpunchmytacz$reported) {
-                dontpunchmytacz$reported = true;
-                DontPunchMyTacz.LOGGER.info("Kept the held stack live for Punchy");
-            }
-        } catch (Throwable ignored) {
+        ItemStack rendered = cir.getReturnValue();
+        if (player == null || arm == null || rendered == null || rendered.m_41619_()) {
+            return;
+        }
+        ItemStack live = player.m_21120_(arm == player.m_5737_() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
+        if (live == rendered || live.m_41619_() || !ItemStack.m_41656_(live, rendered) || live.m_41613_() != rendered.m_41613_()) {
+            return;
+        }
+        cir.setReturnValue(live);
+        cir.cancel();
+        if (!dontpunchmytacz$reported) {
+            dontpunchmytacz$reported = true;
+            DontPunchMyTacz.LOGGER.info("Kept the held stack live for Punchy");
         }
     }
 }

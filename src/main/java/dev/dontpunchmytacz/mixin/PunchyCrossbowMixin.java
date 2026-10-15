@@ -20,48 +20,45 @@ public class PunchyCrossbowMixin {
 
     private static boolean dontpunchmytacz$loggedCurrentCharge;
 
-    @Inject(method = "clipSpeedMultiplier", at = @At("RETURN"), cancellable = true, require = 0, remap = false)
+    @Inject(method = "clipSpeedMultiplier", at = @At("RETURN"), cancellable = true, require = 1, remap = false)
     private static void dontpunchmytacz$speedUpQuickCharge(AnimationClip clip, CallbackInfoReturnable<Float> cir) {
-        try {
-            String name = clip == null ? null : clip.getName();
-            if (name == null || !dontpunchmytacz$startsWithIgnoreCase(name, "use_crossbow")) {
-                return;
-            }
-            if (dontpunchmytacz$containsIgnoreCase(name, "shot")) {
-                dontpunchmytacz$loggedCurrentCharge = false;
-                return;
-            }
+        String name = clip == null ? null : clip.getName();
+        if (name == null || !dontpunchmytacz$startsWithIgnoreCase(name, "use_crossbow")) {
+            return;
+        }
+        if (dontpunchmytacz$containsIgnoreCase(name, "shot")) {
+            dontpunchmytacz$loggedCurrentCharge = false;
+            return;
+        }
 
-            Minecraft minecraft = Minecraft.getInstance();
-            LocalPlayer player = minecraft == null ? null : minecraft.player;
-            if (player == null || !player.isUsingItem()) {
-                dontpunchmytacz$loggedCurrentCharge = false;
-                return;
-            }
-            ItemStack stack = player.getUseItem();
-            if (!(stack.getItem() instanceof CrossbowItem)) {
-                return;
-            }
+        Minecraft minecraft = Minecraft.m_91087_();
+        LocalPlayer player = minecraft == null ? null : minecraft.f_91074_;
+        if (player == null || !player.m_6117_()) {
+            dontpunchmytacz$loggedCurrentCharge = false;
+            return;
+        }
+        ItemStack stack = player.m_21211_();
+        if (!(stack.m_41720_() instanceof CrossbowItem)) {
+            return;
+        }
 
-            int duration = CrossbowItem.getChargeDuration(stack);
-            if (duration <= 0 || duration >= (int) dontpunchmytacz$BASE_CHARGE_TICKS) {
-                return;
-            }
+        int duration = CrossbowItem.m_40939_(stack);
+        if (duration <= 0 || duration >= (int) dontpunchmytacz$BASE_CHARGE_TICKS) {
+            return;
+        }
 
-            float speed = cir.getReturnValueF();
-            if (!Float.isFinite(speed) || speed <= 0.0F) {
-                return;
-            }
+        float speed = cir.getReturnValueF();
+        if (!Float.isFinite(speed) || speed <= 0.0F) {
+            return;
+        }
 
-            float factor = Math.min(dontpunchmytacz$BASE_CHARGE_TICKS / (float) duration, dontpunchmytacz$MAX_FACTOR);
-            cir.setReturnValue(speed * factor);
+        float factor = Math.min(dontpunchmytacz$BASE_CHARGE_TICKS / (float) duration, dontpunchmytacz$MAX_FACTOR);
+        cir.setReturnValue(speed * factor);
 
-            if (!dontpunchmytacz$loggedCurrentCharge && DontPunchMyTacz.LOGGER.isDebugEnabled()) {
-                dontpunchmytacz$loggedCurrentCharge = true;
-                DontPunchMyTacz.LOGGER.debug("[dont punch my tacz] crossbow charge animation x{} (clip '{}', charge {} ticks)",
-                        factor, name, duration);
-            }
-        } catch (Throwable ignored) {
+        if (!dontpunchmytacz$loggedCurrentCharge && DontPunchMyTacz.LOGGER.isDebugEnabled()) {
+            dontpunchmytacz$loggedCurrentCharge = true;
+            DontPunchMyTacz.LOGGER.debug("[dont punch my tacz] crossbow charge animation x{} (clip '{}', charge {} ticks)",
+                    factor, name, duration);
         }
     }
 

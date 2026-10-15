@@ -17,7 +17,6 @@ public final class CarryOnCompat {
 
     private static Method getCarryData;
     private static Method isCarryingMethod;
-    private static boolean unavailable;
     private static boolean announced;
 
     private CarryOnCompat() {
@@ -33,11 +32,7 @@ public final class CarryOnCompat {
     }
 
     private static boolean isCarrying() {
-        if (unavailable) {
-            return false;
-        }
-
-        Player player = Minecraft.getInstance().player;
+        Player player = Minecraft.m_91087_().f_91074_;
         if (player == null) {
             return false;
         }
@@ -63,10 +58,8 @@ public final class CarryOnCompat {
                 LOGGER.info("Carry On found, hiding Punchy's hand while carrying");
             }
             return carrying;
-        } catch (Throwable t) {
-            unavailable = true;
-            LOGGER.warn("Carry On integration disabled: {}", t.toString());
-            return false;
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Unable to call the installed Carry On API", e);
         }
     }
 }

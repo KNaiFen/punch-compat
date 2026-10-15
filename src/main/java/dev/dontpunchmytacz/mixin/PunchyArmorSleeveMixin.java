@@ -20,34 +20,31 @@ public class PunchyArmorSleeveMixin {
     private static EntityRenderer<?> dontpunchmytacz$armorLayerOwner;
     private static HumanoidArmorLayer<?, ?, ?> dontpunchmytacz$armorLayer;
 
-    @Inject(method = "renderArmArmor", at = @At("RETURN"), require = 0, remap = false)
+    @Inject(method = "renderArmArmor", at = @At("RETURN"), require = 1, remap = false)
     private static void dontpunchmytacz$releaseArmorSleeveMatrix(CallbackInfo ci) {
-        try {
-            Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft == null || minecraft.player == null) {
-                return;
-            }
-            HumanoidArmorLayer<?, ?, ?> layer = dontpunchmytacz$resolveArmorLayer();
-            if (layer == null) {
-                return;
-            }
-            HumanoidModel<?> outer = ((HumanoidArmorLayerAccessor) layer).punchy$getOuterModel();
-            if (outer != null) {
-                dontpunchmytacz$clear(outer.rightArm);
-                dontpunchmytacz$clear(outer.leftArm);
-            }
-            HumanoidModel<?> inner = ((HumanoidArmorLayerAccessor) layer).punchy$getInnerModel();
-            if (inner != null) {
-                dontpunchmytacz$clear(inner.rightArm);
-                dontpunchmytacz$clear(inner.leftArm);
-            }
-        } catch (Throwable ignored) {
+        Minecraft minecraft = Minecraft.m_91087_();
+        if (minecraft == null || minecraft.f_91074_ == null) {
+            return;
+        }
+        HumanoidArmorLayer<?, ?, ?> layer = dontpunchmytacz$resolveArmorLayer();
+        if (layer == null) {
+            return;
+        }
+        HumanoidModel<?> outer = ((HumanoidArmorLayerAccessor) layer).punchy$getOuterModel();
+        if (outer != null) {
+            dontpunchmytacz$clear(outer.f_102811_);
+            dontpunchmytacz$clear(outer.f_102812_);
+        }
+        HumanoidModel<?> inner = ((HumanoidArmorLayerAccessor) layer).punchy$getInnerModel();
+        if (inner != null) {
+            dontpunchmytacz$clear(inner.f_102811_);
+            dontpunchmytacz$clear(inner.f_102812_);
         }
     }
 
     private static HumanoidArmorLayer<?, ?, ?> dontpunchmytacz$resolveArmorLayer() {
-        Minecraft minecraft = Minecraft.getInstance();
-        EntityRenderer<?> owner = minecraft.getEntityRenderDispatcher().getRenderer(minecraft.player);
+        Minecraft minecraft = Minecraft.m_91087_();
+        EntityRenderer<?> owner = minecraft.m_91290_().m_114382_(minecraft.f_91074_);
         if (owner == dontpunchmytacz$armorLayerOwner && dontpunchmytacz$armorLayer != null) {
             return dontpunchmytacz$armorLayer;
         }

@@ -1,61 +1,43 @@
 modLoader="javafml"
-loaderVersion="${loader_version_range}"
-license="${mod_license}"
+loaderVersion="[47,)"
+license="GPL-3.0-only"
 clientSideOnly=true
 
 [[mods]]
-modId="${mod_id}"
-version="${mod_version}"
-displayName="${mod_name}"
-authors="Don't Punch My TACZ"
-logoFile="icon.png"
-description='''Punchy compats and fixes for TACZ, SuperbWarfare, Create and more.'''
+modId="punch_compat"
+version="1.0.0"
+displayName="Punch Compat"
+authors="KNaiFen; upstream contributions by lloy9d"
+credits="Don't Punch My TACZ by lloy9d; Punchy; RealCamera by xTracr; Create Team"
+description='''Punchy compatibility for TACZ, RealCamera, Create Extendo Grip and fixes inherited from Don't Punch My TACZ 0.5.2. Independent community fork.'''
 
-[[dependencies.${mod_id}]]
-    modId="forge"
-    mandatory=true
-    versionRange="${forge_version_range}"
-    ordering="NONE"
-    side="CLIENT"
-
-[[dependencies.${mod_id}]]
-    modId="minecraft"
-    mandatory=true
-    versionRange="${minecraft_version_range}"
-    ordering="NONE"
-    side="CLIENT"
-
-[[dependencies.${mod_id}]]
-    modId="punchy"
-    mandatory=false
-    versionRange="[0,)"
-    ordering="BEFORE"
-    side="CLIENT"
-
-[[dependencies.${mod_id}]]
-    modId="tacz"
-    mandatory=false
-    versionRange="[0,)"
-    ordering="AFTER"
-    side="CLIENT"
-
-[[dependencies.${mod_id}]]
-    modId="superbwarfare"
-    mandatory=false
-    versionRange="[0,)"
-    ordering="AFTER"
-    side="CLIENT"
-
-[[dependencies.${mod_id}]]
-    modId="carryon"
-    mandatory=false
-    versionRange="[0,)"
-    ordering="AFTER"
-    side="CLIENT"
-
-[[dependencies.${mod_id}]]
-    modId="cgs"
-    mandatory=false
-    versionRange="[0,)"
-    ordering="AFTER"
-    side="CLIENT"
+[[dependencies.punch_compat]]
+modId="forge"
+mandatory=true
+versionRange="[47,48)"
+ordering="NONE"
+side="CLIENT"
+[[dependencies.punch_compat]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1]"
+ordering="NONE"
+side="CLIENT"
+[[dependencies.punch_compat]]
+modId="punchy"
+mandatory=false
+versionRange="[2.8f]"
+ordering="AFTER"
+side="CLIENT"
+[[dependencies.punch_compat]]
+modId="realcamera"
+mandatory=false
+versionRange="[0.7.8-beta]"
+ordering="AFTER"
+side="CLIENT"
+[[dependencies.punch_compat]]
+modId="create"
+mandatory=false
+versionRange="[6.0.8]"
+ordering="AFTER"
+side="CLIENT"

@@ -1,32 +1,17 @@
 package dev.dontpunchmytacz;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.loading.FMLPaths;
-
-import java.io.Reader;
-import java.io.Writer;
-import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import punchy.config.PunchyConfig;
 
+/** Item coverage adapted from lloy9d/dont-punch-my-tacz 0.5.2, GPL-3.0-only. */
 final class BlacklistForce {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     private static final List<String> REMOVE = List.of(
+            "create:extendo_grip",
             "tacz:.*",
             "superbwarfare:.*",
             "lrtactical:.*",
@@ -48,7 +33,6 @@ final class BlacklistForce {
             "powergrid:portable_drill",
             "powergrid:electrozapper",
             "create:handheld_worldshaper",
-            "create:extendo_grip",
             "create:potato_cannon",
             "simulated:plunger_launcher",
             "tacz:aa12",
@@ -201,201 +185,22 @@ final class BlacklistForce {
             .flatMap(Collection::stream)
             .toList();
 
-    private static final String CONFIG = "punchy/punchy_config.json";
-
-    private BlacklistForce() {
-    }
-
     static void apply() {
-        int files = patchFile();
-        int memory = patchLoaded();
-        if (files > 0 || memory > 0) {
-            DontPunchMyTacz.LOGGER.info("Updated Punchy blacklist");
-        }
-    }
-
-    private static int patchFile() {
-        Path path = FMLPaths.CONFIGDIR.get().resolve(CONFIG);
-        if (!Files.isRegularFile(path)) {
-            return 0;
-        }
-
-        JsonObject root;
-        try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            JsonElement parsed = JsonParser.parseReader(reader);
-            if (parsed == null || !parsed.isJsonObject()) {
-                return 0;
-            }
-            root = parsed.getAsJsonObject();
-        } catch (Exception e) {
-            DontPunchMyTacz.LOGGER.warn("Failed to read {}", path.getFileName());
-            return 0;
-        }
-
-        if (!root.has("itemBlacklist") && !root.has("enableMod")) {
-            return 0;
-        }
-        if (!merge(root)) {
-            return 0;
-        }
-
-        Path temp = path.resolveSibling(path.getFileName() + ".tmp");
-        try (Writer writer = Files.newBufferedWriter(temp, StandardCharsets.UTF_8)) {
-            GSON.toJson(root, writer);
-            writer.write('\n');
-            Files.move(temp, path, StandardCopyOption.REPLACE_EXISTING);
-            return 1;
-        } catch (Exception e) {
-            DontPunchMyTacz.LOGGER.warn("Failed to write {}", path.getFileName());
-            try {
-                Files.deleteIfExists(temp);
-            } catch (Exception ignored) {
-            }
-            return 0;
-        }
-    }
-
-    private static boolean merge(JsonObject root) {
-        JsonArray list = root.has("itemBlacklist") && root.get("itemBlacklist").isJsonArray()
-                ? root.getAsJsonArray("itemBlacklist")
-                : new JsonArray();
-        JsonObject dual = root.has("blacklistApplyDualHanded") && root.get("blacklistApplyDualHanded").isJsonObject()
-                ? root.getAsJsonObject("blacklistApplyDualHanded")
-                : new JsonObject();
-
-        Set<String> have = new LinkedHashSet<>();
-        for (JsonElement el : list) {
-            if (el.isJsonPrimitive()) {
-                have.add(el.getAsString());
-            }
-        }
-
-        boolean changed = false;
-        for (String id : REMOVE) {
-            if (have.remove(id)) {
-                changed = true;
-            }
-            if (dual.has(id)) {
-                dual.remove(id);
-                changed = true;
-            }
-        }
-
-        JsonArray next = new JsonArray();
-        for (String id : have) {
-            next.add(id);
-        }
+        PunchyConfig.Data data = PunchyConfig.snapshot();
+        Set<String> items = new LinkedHashSet<>(data.itemBlacklist);
+        boolean changed = items.removeAll(REMOVE);
+        changed |= items.addAll(IDS);
+        for (String id : REMOVE) changed |= data.blacklistApplyDualHanded.remove(id) != null;
         for (String id : IDS) {
-            if (have.add(id)) {
-                next.add(id);
-                changed = true;
-            }
-            if (!dual.has(id)) {
-                dual.addProperty(id, false);
+            if (!data.blacklistApplyDualHanded.containsKey(id)) {
+                data.blacklistApplyDualHanded.put(id, false);
                 changed = true;
             }
         }
-
-        root.add("itemBlacklist", next);
-        root.add("blacklistApplyDualHanded", dual);
-        return changed;
-    }
-
-    private static int patchLoaded() {
-        if (!ModList.get().isLoaded("punchy")) {
-            return 0;
+        if (changed) {
+            data.itemBlacklist = List.copyOf(items);
+            PunchyConfig.applyAndSave(data);
+            DontPunchMyTacz.LOGGER.info("Updated Punchy compatibility item exclusions");
         }
-        Object mod = ModList.get().getModContainerById("punchy").map(c -> {
-            try {
-                return c.getClass().getMethod("getMod").invoke(c);
-            } catch (Exception e) {
-                return null;
-            }
-        }).orElse(null);
-        return mod == null ? 0 : scan(mod, 0);
-    }
-
-    private static int scan(Object target, int depth) {
-        if (target == null || depth > 2) {
-            return 0;
-        }
-
-        int hits = 0;
-        for (Field field : target.getClass().getDeclaredFields()) {
-            Object value;
-            try {
-                field.setAccessible(true);
-                value = field.get(target);
-            } catch (Exception e) {
-                continue;
-            }
-            if (value == null) {
-                continue;
-            }
-
-            String name = field.getName();
-            if ("itemBlacklist".equals(name) && value instanceof Collection<?> col) {
-                if (addIds(col)) {
-                    hits++;
-                }
-            } else if ("blacklistApplyDualHanded".equals(name) && value instanceof Map<?, ?> map) {
-                if (addFlags(map)) {
-                    hits++;
-                }
-            } else if (depth == 0) {
-                String type = value.getClass().getName();
-                if (type.toLowerCase().contains("punchy") && !type.startsWith("java.")) {
-                    hits += scan(value, 1);
-                }
-            }
-        }
-        return hits;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static boolean addIds(Collection<?> collection) {
-        if (!collection.isEmpty() && !(collection.iterator().next() instanceof String)) {
-            return false;
-        }
-        Collection<Object> col = (Collection<Object>) collection;
-        boolean changed = false;
-        for (String id : REMOVE) {
-            if (col.remove(id)) {
-                changed = true;
-            }
-        }
-        for (String id : IDS) {
-            if (!col.contains(id)) {
-                try {
-                    col.add(id);
-                    changed = true;
-                } catch (Exception e) {
-                    return changed;
-                }
-            }
-        }
-        return changed;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static boolean addFlags(Map<?, ?> map) {
-        Map<Object, Object> m = (Map<Object, Object>) map;
-        boolean changed = false;
-        for (String id : REMOVE) {
-            if (m.remove(id) != null) {
-                changed = true;
-            }
-        }
-        for (String id : IDS) {
-            if (!m.containsKey(id)) {
-                try {
-                    m.put(id, Boolean.FALSE);
-                    changed = true;
-                } catch (Exception e) {
-                    return changed;
-                }
-            }
-        }
-        return changed;
     }
 }
